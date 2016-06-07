@@ -44,6 +44,9 @@ class Nota{
   int grado;
   String nombre; // Para mayor facilidad para identificar las notas, tienen un nombre
 
+  // Constructor vacio
+  Nota(){}
+
   // Constructor de nota
   // Agregado grado para que represente el grado de la escala
   Nota(float dur, float f, Waveform wav){
@@ -72,9 +75,10 @@ class Nota{
     println("Nota: " + nombre + " Grado: " + grado +" Frecuencia: " + frecuencia + " Duracion: " + duracion);
   }
 
-  Nota(float dur, float grado, int octava, Waveform wav){
+  Nota(float dur, int g, int octava, Waveform wav){
     duracion = dur;
     waveform = wav;
+    grado = g;
     // Según la nota y la octava, decide el grado de la nota en la escala
     if(octava == 3){
       if(grado == 0) {frecuencia = silencio; nombre = "Silencio";}
@@ -95,6 +99,8 @@ class Nota{
       if(grado == 6) {frecuencia = A4; nombre = "A4";}
       if(grado == 7) {frecuencia = B4; nombre = "B4";}
     }
+
+    println("Nota: " + nombre + " Grado: " + grado +" Frecuencia: " + frecuencia + " Duracion: " + duracion);
 
   }
 

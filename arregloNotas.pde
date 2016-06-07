@@ -22,7 +22,7 @@ Waveform saw = Waves.SAW;
 
 // Frecuencias de las notas
 
-float silencio = 0; // Se tiene la frecuencia 0 para poder añadir silencios como notas
+//float silencio = 0; // Se tiene la frecuencia 0 para poder añadir silencios como notas
 /*
 float C2 = 65.41;
 float D2 = 73.42;
@@ -262,14 +262,14 @@ Vector<Nota> generarNextNotas(int numTiempos, float duracionNotas, int octava, W
   Vector<Nota> vecNotas = new Vector<Nota>(); // Crea el vector que se va a devolver
   int randomNum = (int) random(1, 7);
   notaSemilla = new Nota(duracionNotas, randomNum , octava, wav);
-  println("Nota semilla: " + notaSemilla.nota + " Grado " + notaSemilla.grado + " Duracion " + notaSemilla.duracion + " Octava " + octava);
+  println("Nota semilla: " + notaSemilla.frecuencia + " Grado " + notaSemilla.grado + " Duracion " + notaSemilla.duracion + " Octava " + octava);
   vecNotas.add(notaSemilla); // Anade primero la nota semilla
   Nota notaActual = notaSemilla;
 
   for(int i = 0 ; i < numTiempos - 1 ; i+= duracionNotas){
     notaActual = nextNota(notaActual, wav, octava); // Ahora la actual es la siguiente
     vecNotas.add(notaActual); // Anade al vector de notas
-    println("Nota agregada: " + notaActual.nota + " Octava " + octava);
+    println("Nota agregada: " + notaActual.frecuencia + " Octava " + octava);
   }
   return vecNotas;
 }
@@ -442,66 +442,51 @@ Vector<Nota> generarNotas(int numTiempos, float duracionNotas, Waveform wav, int
     switch(randomNum) {
     case 1:
       vecNotas.addElement(new Nota(duracionNotas, C3, wav));
-      print("C3 ");
       break;
     case 2:
       vecNotas.addElement(new Nota(duracionNotas, D3, wav));
-      print("D3 ");
       break;
     case 3:
       vecNotas.addElement(new Nota(duracionNotas, E3, wav));
-      print("E3 ");
       break;
     case 4:
       vecNotas.addElement(new Nota(duracionNotas, F3, wav));
-      print("F3 ");
       break;
     case 5:
       vecNotas.addElement(new Nota(duracionNotas, G3, wav));
-      print("G3 ");
       break;
     case 6:
       vecNotas.addElement(new Nota(duracionNotas, A3, wav));
-      print("A3 ");
       break;
     case 7:
       vecNotas.addElement(new Nota(duracionNotas, B3, wav));
-      print("B3 ");
       break;
     case 8:
       vecNotas.addElement(new Nota(duracionNotas, C4, wav));
-      print("C4 ");
       break;
     case 9:
       vecNotas.addElement(new Nota(duracionNotas, D4, wav));
-      print("D4 ");
       break;
     case 10:
       vecNotas.addElement(new Nota(duracionNotas, E4, wav));
-      print("E4 ");
       break;
     case 11:
       vecNotas.addElement(new Nota(duracionNotas, F4, wav));
-      print("F4 ");
       break;
     case 12:
       vecNotas.addElement(new Nota(duracionNotas, G4, wav));
-      print("G4 ");
       break;
     case 13:
       vecNotas.addElement(new Nota(duracionNotas, A4, wav));
-      print("A4 ");
       break;
     case 14:
       vecNotas.addElement(new Nota(duracionNotas, B4, wav));
-      print("B4 ");
       break;
     case 15:
       vecNotas.addElement(new Nota(duracionNotas, C5, wav));
-      print("C5 ");
       break;
     }
-    print("(" + randomNum + ") ");
+    //print("(" + randomNum + ") ");
     // Coloca los espacios que sean necesarios, ej: Si son notas blancas, coloca 1 silencio por cada nota que inserte, si son redondas coloca 3 por cada nota
     for (int j = 1; j < duracionNotas; j++ ) {
       vecNotas.addElement(new Nota(duracionNotas, silencio, wav));
@@ -572,7 +557,10 @@ Vector<Nota> generarAcordes(int numTiempos, Waveform wav, int octava, int offset
     silenciosColocados++; // Se agregó 1 silencio, se lleva esta cuenta para empezar a poner notas después del último silencio colocado
   }
   // Fin de insertar silencios
-  println("Offset: " + silenciosColocados + " tiempos.");
+  println("--- Generando acordes ---");
+  println("numTiempos: " + numTiempos);
+  println("Octava: " + octava);
+  println("Offset: " + silenciosColocados + " tiempos");
   // (numTiempos + silenciosColocados) - 1 para que se decida al final la última nota, para dar caracter de resolución
   // Genera número aleatorio
   int randomNum;

@@ -1,3 +1,4 @@
+float silencio = 0;
 
 float C2 = 65.41;
 float D2 = 73.42;
@@ -38,35 +39,37 @@ class Nota{
 
   //int indice; // Cada nota tiene su índice en la secuencia de notas
   float duracion; // Duracion de la nota (negra, blanca, etc...)
-  float nota; // La nota específica (do, re, mi, etc...)
+  float frecuencia; // La nota específica (do, re, mi, etc...)
   Waveform waveform; // El waveform de la nota (sine, saw, etc...)
   int grado;
+  String nombre; // Para mayor facilidad para identificar las notas, tienen un nombre
 
   // Constructor de nota
   // Agregado grado para que represente el grado de la escala
-  Nota(float dur, float n, Waveform wav){
+  Nota(float dur, float f, Waveform wav){
     //indice = ind;
     duracion = dur;
-    nota = n;
+    frecuencia = f;
     waveform = wav;
     // Según la nota, decide el grado de la nota en la escala
     // Hace asi las comparaciones porque java apesta comparando floats
-    if(C3 - 0.1 < n && n < C3 + 0.1) grado = 1;
-    if(D3 - 0.1 < n && n < D3 + 0.1) grado = 2;
-    if(E3 - 0.1 < n && n < E3 + 0.1) grado = 3;
-    if(F3 - 0.1 < n && n < F3 + 0.1) grado = 4;
-    if(G3 - 0.1 < n && n < G3 + 0.1) grado = 5;
-    if(A3 - 0.1 < n && n < A3 + 0.1) grado = 6;
-    if(B3 - 0.1 < n && n < B3 + 0.1) grado = 7;
-    if(C4 - 0.1 < n && n < C4 + 0.1) grado = 1;
-    if(D4 - 0.1 < n && n < D4 + 0.1) grado = 2;
-    if(E4 - 0.1 < n && n < E4 + 0.1) grado = 3;
-    if(F4 - 0.1 < n && n < F4 + 0.1) grado = 4;
-    if(G4 - 0.1 < n && n < G4 + 0.1) grado = 5;
-    if(A4 - 0.1 < n && n < A4 + 0.1) grado = 6;
-    if(B4 - 0.1 < n && n < B4 + 0.1) grado = 7;
+    if(f == 0){grado = 0; nombre = "Silencio";}
+    if(C3 - 1 < f && f < C3 + 1) {grado = 1; nombre = "C3";}
+    if(D3 - 1 < f && f < D3 + 1) {grado = 2; nombre = "D3";}
+    if(E3 - 1 < f && f < E3 + 1) {grado = 3; nombre = "E3";}
+    if(F3 - 1 < f && f < F3 + 1) {grado = 4; nombre = "F3";}
+    if(G3 - 1 < f && f < G3 + 1) {grado = 5; nombre = "G3";}
+    if(A3 - 1 < f && f < A3 + 1) {grado = 6; nombre = "A3";}
+    if(B3 - 1 < f && f < B3 + 1) {grado = 7; nombre = "B3";}
+    if(C4 - 1 < f && f < C4 + 1) {grado = 1; nombre = "C4";}
+    if(D4 - 1 < f && f < D4 + 1) {grado = 2; nombre = "D4";}
+    if(E4 - 1 < f && f < E4 + 1) {grado = 3; nombre = "E4";}
+    if(F4 - 1 < f && f < F4 + 1) {grado = 4; nombre = "F4";}
+    if(G4 - 1 < f && f < G4 + 1) {grado = 5; nombre = "G4";}
+    if(A4 - 1 < f && f < A4 + 1) {grado = 6; nombre = "A4";}
+    if(B4 - 1 < f && f < B4 + 1) {grado = 7; nombre = "B4";}
 
-    println("El grado de la nota es: " + grado);
+    println("Nota: " + nombre + " Grado: " + grado +" Frecuencia: " + frecuencia + " Duracion: " + duracion);
   }
 
   Nota(float dur, float grado, int octava, Waveform wav){
@@ -74,21 +77,23 @@ class Nota{
     waveform = wav;
     // Según la nota y la octava, decide el grado de la nota en la escala
     if(octava == 3){
-      if(grado == 1) nota = C3;
-      if(grado == 2) nota = D3;
-      if(grado == 3) nota = E3;
-      if(grado == 4) nota = F3;
-      if(grado == 5) nota = G3;
-      if(grado == 6) nota = A3;
-      if(grado == 7) nota = B3;
+      if(grado == 0) {frecuencia = silencio; nombre = "Silencio";}
+      if(grado == 1) {frecuencia = C3; nombre = "C3";}
+      if(grado == 2) {frecuencia = D3; nombre = "D3";}
+      if(grado == 3) {frecuencia = E3; nombre = "E3";}
+      if(grado == 4) {frecuencia = F3; nombre = "F3";}
+      if(grado == 5) {frecuencia = G3; nombre = "G3";}
+      if(grado == 6) {frecuencia = A3; nombre = "A3";}
+      if(grado == 7) {frecuencia = B3; nombre = "B3";}
     }else if(octava == 4){
-      if(grado == 1) nota = C4;
-      if(grado == 2) nota = D4;
-      if(grado == 3) nota = E4;
-      if(grado == 4) nota = F4;
-      if(grado == 5) nota = G4;
-      if(grado == 6) nota = A4;
-      if(grado == 7) nota = B4;
+      if(grado == 0) {frecuencia = silencio;}
+      if(grado == 1) {frecuencia = C4; nombre = "C4";}
+      if(grado == 2) {frecuencia = D4; nombre = "D4";}
+      if(grado == 3) {frecuencia = E4; nombre = "E4";}
+      if(grado == 4) {frecuencia = F4; nombre = "F4";}
+      if(grado == 5) {frecuencia = G4; nombre = "G4";}
+      if(grado == 6) {frecuencia = A4; nombre = "A4";}
+      if(grado == 7) {frecuencia = B4; nombre = "B4";}
     }
 
   }

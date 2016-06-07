@@ -91,7 +91,7 @@ class Reproductor {
     // Antes era menor o igual
     for (int i=0; i < notas.size(); i+= duracionNotas) {
       //out.playNote(notas.elementAt(i).indice, notas.elementAt(i).duracion, new Instrumento(notas.elementAt(i).nota, notas.elementAt(i).waveform));
-      out.playNote(i, notas.elementAt(i).duracion, new Instrumento(notas.elementAt(i).nota, notas.elementAt(i).waveform));
+      out.playNote(i, notas.elementAt(i).duracion, new Instrumento(notas.elementAt(i).frecuencia, notas.elementAt(i).waveform));
     }
     out.resumeNotes();
   }

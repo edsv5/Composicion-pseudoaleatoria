@@ -35,6 +35,7 @@ float G5 = 783.99;
 float A5 = 880.00;
 float B5 = 987.77;
 
+
 class Nota{
 
   //int indice; // Cada nota tiene su índice en la secuencia de notas

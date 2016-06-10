@@ -44,47 +44,6 @@ Waveform phasor = Waves.PHASOR;
 Waveform qtp = Waves.QUARTERPULSE;
 Waveform saw = Waves.SAW;
 
-// Frecuencias de las notas
-
-//float silencio = 0; // Se tiene la frecuencia 0 para poder a\u00f1adir silencios como notas
-/*
-float C2 = 65.41;
-float D2 = 73.42;
-float E2 = 82.41;
-float F2 = 87.31;
-float FS2 = 92.50;
-float G2 = 98.00;
-float A2 = 110.00;
-float B2 = 123.47;
-
-float C3 = 130.81;
-float D3 = 146.83;
-float E3 = 164.81;
-float F3 = 174.61;
-float G3 = 196.00;
-float A3 = 220.00;
-float B3 = 246.94;
-
-float C4 = 261.63;
-float D4 = 293.66;
-float E4 = 329.63;
-float F4 = 349.23;
-float FS4 = 369.99;
-float G4 = 392.00;
-float A4 = 440.00;
-float B4 = 493.88;
-
-float C5 = 523.25;
-float CS5 = 554.37;
-float D5 = 587.33;
-float E5 = 659.25;
-float F5 = 698.46;
-float G5 = 783.99;
-float A5 = 880.00;
-float B5 = 987.77;
-
-*/
-
 // Declaraci\u00f3n del Reproductor que contiene las rutinas para reproducir
 // arreglos de Notas
 
@@ -100,18 +59,7 @@ public void setup() {
 
   //generarPiezaAcordes();
 
-
-  Vector< Vector<Nota> > arreglo = new  Vector< Vector<Nota> >();
-  Vector<Nota> Am = generarNextNotas(8, negra, 4, sine);
-
-  Vector<Nota> melodia = new Vector<Nota>();
-  melodia.addAll(Am);
-
-  arreglo.add(melodia);
-
-  r.reproducirVectores(arreglo, 100);
-
-
+  generarPiezaCriterioA();
 }
 
 public void draw() {
@@ -122,6 +70,44 @@ public void draw() {
   //text("Frecuencia: " + o.wave.frequency.getLastValue(), 20, 20);
   //text("Amplitud: " + o.wave.amplitude.getLastValue(), 20, 40);
 }
+
+// Genera una pieza cuya melod\u00eda est\u00e1 generada con el criterio de
+// generaci\u00f3n estoc\u00e1stica definido en el m\u00e9todo nextNota
+
+public void generarPiezaCriterioA(){
+   // Crea el arreglo
+   Vector< Vector<Nota> > arreglo = new  Vector< Vector<Nota> >();
+
+   // Crea el vector de vectores de Notas que representa una "partitura"
+   //generarNextNotas(int numTiempos, float duracionNotas, int octava, Waveform wav)
+   Vector<Nota> Am = generarNextNotas(8, negra, 4, triangle);
+   Vector<Nota> Bm = generarNextNotas(8, negra, 4, triangle);
+   Vector<Nota> Cm = generarNextNotas(8, negra, 4, triangle);;
+
+   Vector<Nota> AAcordes = generarAcordes(8, sine, 3, 0);
+   Vector<Nota> BAcordes = generarAcordes(8, sine, 3, 0);
+   Vector<Nota> CAcordes = generarAcordes(8, sine, 3, 0);
+
+   Vector<Nota> melodia = new Vector<Nota>();
+   Vector<Nota> acomp = new Vector<Nota>();
+
+   melodia.addAll(Am);
+   melodia.addAll(Bm);
+   melodia.addAll(Am);
+   melodia.addAll(Cm);
+
+   acomp.addAll(AAcordes);
+   acomp.addAll(BAcordes);
+   acomp.addAll(AAcordes);
+   acomp.addAll(CAcordes);
+
+   arreglo.add(melodia);
+   arreglo.add(acomp);
+
+   r.reproducirVectores(arreglo, 100);
+
+}
+
 
 // Este m\u00e9todo deber\u00eda dar cada vez que se llama, la siguiente nota, dada una nota actual,
 // de esta manera que exista alg\u00fan criterio de generaci\u00f3n de notas menos aleatorio.
@@ -193,7 +179,7 @@ public Nota nextNota(Nota notaActual, Waveform wav, int octava){
   //print("GRADO: " + notaActual.grado);
   switch (notaActual.grado){
     case 0:
-      println("El grado por alguna razon es 0, fuck you.");
+      println("GRADO 0");
       break;
     case 1: // En teoria, la tonica resuelve, pero para darle dinamismo, nos movemos con igual probabilidad de la tonica a cualquier otro grado
       if(randomNum < 0.15f){
@@ -279,6 +265,7 @@ public Nota nextNota(Nota notaActual, Waveform wav, int octava){
 }
 
 // Se usa esto para generar una nota conclusiva, que d\u00e9 caracter de resoluci\u00f3n
+// Por ahora, la nota conclusiva va a ser del doble del tiempo de la nota actual
 
 public Nota nextNotaConclusiva(Nota notaActual, Waveform wav, int octava){
   Nota notaSiguiente = new Nota(); // Crea la nota como silencio, pronto la asignaremos
@@ -290,57 +277,58 @@ public Nota nextNotaConclusiva(Nota notaActual, Waveform wav, int octava){
       break;
     case 1: // Si estamos sobre la t\u00f3nica, con 50% de probabilidad, se mueve al grado III para dar variaci\u00f3n, o se queda donde est\u00e1
       if(randomNum < 0.50f){
-        notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+        notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav);
       }else{
-        notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
+        notaSiguiente = new Nota(notaActual.duracion*2, 3, octava, wav);
       }
     break;
 
     case 2: // Si est\u00e1 en el grado II, tiene 70% de chance de moverse hacia la t\u00f3nica, 30% de ir hacia grado III
       if(randomNum < 0.70f){
-        notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+        notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav);
       }else{
-        notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
+        notaSiguiente = new Nota(notaActual.duracion*2, 3, octava, wav);
       }
 
     break;
 
     case 3: // 50% de chance de moverse hacia la t\u00f3nica, 50% de quedarse donde est\u00e1
       if(randomNum < 0.50f){
-        notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
+        notaSiguiente = new Nota(notaActual.duracion*2, 3, octava, wav);
       }else{
-        notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+        notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav);
       }
     break;
 
     case 4:
       if(randomNum < 0.50f){
-        notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav); // Cadencia plagal IV -> I
+        notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav); // Cadencia plagal IV -> I
       }else{
-        notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
+        notaSiguiente = new Nota(notaActual.duracion*2, 3, octava, wav);
       }
     break;
 
     case 5: // Grado 5 siempre se mueve hacia la t\u00f3nica
-      notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+      notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav);
     break;
 
     case 6: // Relativa menor,puede quedarse donde est\u00e1 o moverse a la t\u00f3nica o III
       if(randomNum < 0.33f){
-        notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+        notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav);
       }else if (0.33f < randomNum && randomNum < 0.77f){
-        notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
+        notaSiguiente = new Nota(notaActual.duracion*2, 3, octava, wav);
       }else{
-        notaSiguiente = new Nota(notaActual.duracion, 6, octava, wav);
+        notaSiguiente = new Nota(notaActual.duracion*2, 6, octava, wav);
       }
     break;
 
     case 7: // Se mueve hacia la tonica siempre para resolver en el siguiente tiempo
 
-      notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+      notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav);
 
     break;
   }
+
   return notaSiguiente;
 }
 
@@ -356,8 +344,9 @@ public Vector<Nota> generarNextNotas(int numTiempos, float duracionNotas, int oc
   Nota notaActual = new Nota(duracionNotas, randomNum , octava, wav);
   vecNotas.add(notaActual); // Anade primero la nota semilla
   // Despu\u00e9s, va generando notas seg\u00fan la nota anterior generada
-  // numTiempos - 2 ya que ya se gener\u00f3 la nota semilla y al final se va a generar una nota que cierre, son 2 notas menos
-  for(int i = 0 ; i < numTiempos - 2 ; i+= duracionNotas){
+  // numTiempos - 1 - duracionNotas * 2
+  // Se resta notaSemilla ya generada y la nota final, que ser\u00e1 del doble de la duraci\u00f3n de la nota actual
+  for(int i = 0 ; i < numTiempos - 1 - duracionNotas*2 ; i+= duracionNotas){
     notaActual = nextNota(notaActual, wav, octava); // Ahora la actual es la siguiente
     vecNotas.add(notaActual); // Anade al vector de notas
     //println("Nota agregada: " + notaActual.frecuencia + " Octava " + octava);
@@ -365,10 +354,17 @@ public Vector<Nota> generarNextNotas(int numTiempos, float duracionNotas, int oc
   // Genera la nota que d\u00e9 caracter conclusivo para que termine la frase
   // Recordemos que este m\u00e9todo genera frases musicales
   notaActual = nextNotaConclusiva(notaActual, wav, octava);
+  vecNotas.add(notaActual);
+
+  // Despu\u00e9s de generar la nota conclusiva, la cual va a ser del doble de tiempos que la nota actual que reciba
+  // inserta el silencio correspondiente, es decir, del doble del tiempo de la nota actual - 1
+
+  for (int j = 1; j < notaActual.duracion; j++ ) {
+    vecNotas.addElement(new Nota(notaActual.duracion, silencio, wav));
+  }
+
   return vecNotas;
-
 }
-
 
 // Genera una pieza con unos acordes arpegiados sencillos
 
@@ -806,6 +802,7 @@ float F5 = 698.46f;
 float G5 = 783.99f;
 float A5 = 880.00f;
 float B5 = 987.77f;
+
 
 class Nota{
 

@@ -146,6 +146,19 @@ void generarPiezaCriterioA(){
 
 */
 
+/*
+   La matriz de Markov que se sigue para la generación de notas es la siguiente:
+            I        II       III         IV       V        VI       VII
+   I        0.10     0.15     0.15        0.15     0.15     0.15     0.15
+   II       0.45     0.10     0           0        0.45     0        0
+   III      0        0.20     0.10        0.20     0        0.50     0
+   IV       0.45     0        0           0.10     0.45     0        0
+   V        0.50     0        0           0        0.50     0        0
+   VI       0        0.45     0           0        0.45     0.10     0
+   VII      1        0        0           0        0        0        0
+
+*/
+
 // Nos da la siguiente nota dada una nota actual y una octava
 
 Nota nextNota(Nota notaActual, Waveform wav, int octava){
@@ -188,9 +201,9 @@ Nota nextNota(Nota notaActual, Waveform wav, int octava){
     case 3: //La tendencia es moverse hacia el grado VI ó hacia el II ó IV..o a quedarse donde esta
       if(randomNum < 0.5){ // 50% probabilidad de ir a grado VI
         notaSiguiente = new Nota(notaActual.duracion, 6, octava, wav);
-      }else if(0.5 < randomNum && randomNum < 0.70){ // 25% de ir hacia grado II
+     }else if(0.50 < randomNum && randomNum < 0.70){ // 30% de ir hacia grado II
         notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
-      }else if(0.70 < randomNum && randomNum < 0.90){ // 25% de ir hacia grado IV
+     }else if(0.70 < randomNum && randomNum < 0.90){ // 30% de ir hacia grado IV
         notaSiguiente = new Nota(notaActual.duracion, 4, octava, wav);
       }else{
         notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);

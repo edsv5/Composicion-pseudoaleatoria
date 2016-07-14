@@ -6,6 +6,7 @@ class Reproductor {
 
   Minim minim;
   AudioOutput out;
+  AudioRecorder recorder; // Para grabar el output
 
   float blanca = 2;
   float negra = 1;
@@ -50,6 +51,7 @@ class Reproductor {
 
     minim = new Minim(this);
     out = minim.getLineOut();
+    //recorder = minim.createRecorder(out, "myrecording.wav");
   }
 
   void displayM() {
@@ -77,9 +79,12 @@ class Reproductor {
   // tempo: Tempo con el que se quieren reproducir las notas
 
   void reproducirVectores(Vector < Vector<Nota> > pieza, int tempo) {
+    //recorder.beginRecord(); // Empieza a grabar
     for (int i=0; i <= pieza.size() - 1; i++) {
       reproducirVector(pieza.elementAt(i), tempo); // Pone a reproducir el vector en la posición respectiva
     }
+    //recorder.endRecord(); // Termina de grabar
+    //recorder.save(); // salva
   }
 
   // Para empezar, un método que reproduzca un vector de notas

@@ -1,3 +1,6 @@
+// TODO: PROGRAMAR UN ALGORITMO PARA MODULAR
+// TODO: PROGRAMAR ALGO QUE GENERE CADENCIAS, DOS NOTAS LARGAS PARA DAR CONCLUSIÓN, 5 1, 4 1, 5 6. 5 1 4 1
+
 import ddf.minim.*;
 import ddf.minim.ugens.*;
 
@@ -25,17 +28,41 @@ Waveform saw = Waves.SAW;
 
 Reproductor r;
 
-
 void setup() {
 
   tx = 0;
   background(255);
   size(600, 500);
+
+  // Se crea la matriz de Markov con la que se van a generar las piezas
+
+  /* 
+   I        II       III         IV       V        VI       VII
+   I        0.10     0.15     0.15        0.15     0.15     0.15     0.15    Igual probabilidad de moverse hacia cualquier grado, un poco menos baja probabilidad de quedarse donde está para dar más variación.
+   II       0.45     0.10     0           0        0.45     0        0       Alta probabilidad de ir hacia el grado I o grado V, baja probabilidad de quedarse donde está.
+   III      0.25     0.125    0.125       0.125    0.125    0.125    0.125   Se puede mover con cualquier probabilidad a cualquier lado o quedarse donde está, con una probabilidad ligeramente más alta de ir hacia la tónica.
+   IV       0.20     0.08     0.08        0.08     0.40     0.08     0.08    Tendencia más fuerte a moverse al quinto grado, un poco menos fuerte a la tonica, baja probabilidad de quedarse o irse a otro grado.
+   V        0.40     0.10     0.10        0.10     0.10     0.10     0.10    Alta probabilidad de ir hacia la tonica, probabilidad repartida de irse hacia los demás grados. 
+   VI       0.20     0.08     0.08        0.08     0.40     0.08     0.08    Se comporta igual que el IV grado
+   VII      0.40     0.10     0.10        0.10     0.10     0.10     0.10    Se comporta igual al V grado, con alta tendencia de ir hacia el primero
+   
+   */
+
+  float [][] matrizMarkov = {{0.10, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15}, 
+    {0.45, 0.10, 0, 0, 0.45, 0, 0 }, 
+    {0.25, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125 }, 
+    {0.20, 0.08, 0.08, 0.08, 0.40, 0.08, 0.08 }, 
+    {0.40, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10 }, 
+    {0.20, 0.08, 0.08, 0.08, 0.40, 0.08, 0.08 }, 
+    {0.40, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10 }};
+
+  pruebaMatrices(matrizMarkov);
+
   r = new Reproductor();
-
   //generarPiezaAcordes();
-
-  generarPiezaCriterioA();
+  generarPiezaCriterioA(matrizMarkov);
+  
+  //generarRondo();
 }
 
 void draw() {
@@ -47,315 +74,49 @@ void draw() {
   //text("Amplitud: " + o.wave.amplitude.getLastValue(), 20, 40);
 }
 
+/************************************** MÉTODOS PARA GENERAR PIEZAS **************************************/
+
 // Genera una pieza cuya melodía está generada con el criterio de
-// generación estocástica definido en el método nextNota
+// generación estocástica definido en el método nextNota como parámetro se le
+// ingresa la matriz de Markov con la que se desean modelar las probabilidades de transición
 
-void generarPiezaCriterioA(){
-   // Crea el arreglo
-   Vector< Vector<Nota> > arreglo = new  Vector< Vector<Nota> >();
+void generarPiezaCriterioA(float[][] matrizMarkov) {
+  
+  // Crea el arreglo
+  Vector< Vector<Nota> > arreglo = new  Vector< Vector<Nota> >();
 
-   // Crea el vector de vectores de Notas que representa una "partitura"
-   //generarNextNotas(int numTiempos, float duracionNotas, int octava, Waveform wav)
-   Vector<Nota> Am = generarNextNotas(8, negra, 4, triangle);
-   Vector<Nota> Bm = generarNextNotas(8, negra, 4, triangle);
-   Vector<Nota> Cm = generarNextNotas(8, negra, 4, triangle);;
+  // Crea tres series de notas que van a representar la partes A, B y C de nuestra pieza
+  // generarNextNotas(int numTiemposPorGenerar, float duracionNotas, int octava, Waveform wav)
+  Vector<Nota> Am = generarNextNotas(8, negra, 4, triangle, matrizMarkov); 
+  Vector<Nota> Bm = generarNextNotas(8, negra, 4, triangle, matrizMarkov);
+  Vector<Nota> Cm = generarNextNotas(8, negra, 4, triangle, matrizMarkov);
 
-   Vector<Nota> AAcordes = generarAcordes(8, sine, 3, 0);
-   Vector<Nota> BAcordes = generarAcordes(8, sine, 3, 0);
-   Vector<Nota> CAcordes = generarAcordes(8, sine, 3, 0);
+  Vector<Nota> AAcordes = generarAcordes(8, sine, 3, 0);
+  Vector<Nota> BAcordes = generarAcordes(8, sine, 3, 0);
+  Vector<Nota> CAcordes = generarAcordes(8, sine, 3, 0);
 
-   Vector<Nota> melodia = new Vector<Nota>();
-   Vector<Nota> acomp = new Vector<Nota>();
+  Vector<Nota> melodia = new Vector<Nota>();
+  Vector<Nota> acomp = new Vector<Nota>();
 
-   melodia.addAll(Am);
-   melodia.addAll(Bm);
-   melodia.addAll(Am);
-   melodia.addAll(Cm);
+  melodia.addAll(Am);
+  melodia.addAll(Bm);
+  melodia.addAll(Am);
+  melodia.addAll(Cm);
+  melodia.addAll(Am);
 
-   acomp.addAll(AAcordes);
-   acomp.addAll(BAcordes);
-   acomp.addAll(AAcordes);
-   acomp.addAll(CAcordes);
+  acomp.addAll(AAcordes);
+  acomp.addAll(BAcordes);
+  acomp.addAll(AAcordes);
+  acomp.addAll(CAcordes);
+  acomp.addAll(AAcordes);
 
-   arreglo.add(melodia);
-   arreglo.add(acomp);
+  arreglo.add(melodia);
+  arreglo.add(acomp);
 
-   r.reproducirVectores(arreglo, 100);
-
+  r.reproducirVectores(arreglo, 100);
 }
 
-
-// Este método debería dar cada vez que se llama, la siguiente nota, dada una nota actual,
-// de esta manera que exista algún criterio de generación de notas menos aleatorio.
-/*
-  Transiciones que se deben tomar en cuenta:
-
-  <---------------------.---------------->
-  I   II    III   IV    V   VI    VII   VIII
-    <-.->        <-.---->  <-.     .->
-
-  Tónica (I)
-
-  La tónica no tiene tendencia a moverse hacia ningún lado, ya resuelve.
-
-  Grado II
-
-  Su función tonal es de Subdominante, por contener el cuarto
-  grado de la escala. Tiende a moverse con la misma fuerza hacia la tónica
-  y hacia dominante.
-
-  Grado III
-
-  Su función tonal es de Tónica. La tendencia de este acorde es moverse
-  hacia el acorde el grado VI ó hacia el II ó IV. Es menos estable que el
-  grado I aunque pertenezca a la función tonal tónica.
-
-  Grado IV (Subdominante)
-
-  Su función tonal es de Subdominante y su tendencia es moverse con la
-  misma fuerza hacia tónica (I) o hacia dominante (V).La cadencia IV-I es de las
-  más fuertes y se llama cadencia plagal.
-
-  Los acordes pertenecientes a esta función armónica piden una ligera
-  resolución en un acorde de función armónica dominante y, en menor
-  medida, en un acorde de función armónica tónica.
-
-  Grado V (Dominante)
-
-  El acorde que se forma es mayor. Su función tonal es de Dominante.
-  Su tendencia es moverse hacia tónica. Es el acorde más importante
-  de la tonalidad después del acorde I.
-
-  Grado VI
-
-  Al tratarse del relativo menor, tiene cierta función de tónica.
-  Su tendencia es a moverse hacia el II o el V.
-
-  Grado VII
-
-  El acorde que se forma es disminuido. Su función tonal es de
-  Dominante, por contener los grados IV y VII. Se trata del acorde
-  más débil e inestable de la tonalidad.
-
-  Grado VIII
-
-  Aunque no es un acorde diatónico, su uso es muy frecuente en
-  progresiones diatónicas. Se trata de un acorde mayor, con
-  función no diatónica, pero como contiene el grado IV se le
-  asigna cierta función de subdominante.
-
-*/
-
-/*
-   La matriz de Markov que se sigue para la generación de notas es la siguiente:
-            I        II       III         IV       V        VI       VII
-   I        0.10     0.15     0.15        0.15     0.15     0.15     0.15
-   II       0.45     0.10     0           0        0.45     0        0
-   III      0        0.20     0.10        0.20     0        0.50     0
-   IV       0.45     0        0           0.10     0.45     0        0
-   V        0.50     0        0           0        0.50     0        0
-   VI       0        0.45     0           0        0.45     0.10     0
-   VII      1        0        0           0        0        0        0
-
-*/
-
-// Nos da la siguiente nota dada una nota actual y una octava
-
-Nota nextNota(Nota notaActual, Waveform wav, int octava){
-  Nota notaSiguiente = new Nota(); // Crea la nota como silencio, pronto la asignaremos
-  // Hace un switch sobre el grado de la nota actual, para ver a cuál grado pasa
-  float randomNum = random(0, 1); // Para las probabilidades de pasar a las otras notas
-  //print("GRADO: " + notaActual.grado);
-  switch (notaActual.grado){
-    case 0:
-      println("GRADO 0");
-      break;
-    case 1: // En teoria, la tonica resuelve, pero para darle dinamismo, nos movemos con igual probabilidad de la tonica a cualquier otro grado
-      if(randomNum < 0.15){
-        notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
-      }else if(0.15 < randomNum && randomNum > 0.30){
-        notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
-      }else if(0.30 < randomNum && randomNum > 0.45){
-        notaSiguiente = new Nota(notaActual.duracion, 4, octava, wav);
-      }else if(0.45 < randomNum && randomNum > 0.60){
-        notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
-      }else if(0.60 < randomNum && randomNum > 0.75){
-        notaSiguiente = new Nota(notaActual.duracion, 6, octava, wav);
-      }else if(0.75 < randomNum && randomNum > 0.90){
-        notaSiguiente = new Nota(notaActual.duracion, 7, octava, wav);
-      }else if(0.90 < randomNum){
-        notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav); // Con 10% de probabilidad se queda donde esta
-      }
-    break;
-
-    case 2: // Tiene 45% de probabilidad de moverse a la tonica y 45% de moverse a la dominante, 10% de quedarse donde esta
-      if(randomNum < 0.45){
-        notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
-      }else if (0.45 < randomNum && randomNum < 0.90){
-        notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
-      }else{
-        notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
-      }
-    break;
-
-    case 3: //La tendencia es moverse hacia el grado VI ó hacia el II ó IV..o a quedarse donde esta
-      if(randomNum < 0.5){ // 50% probabilidad de ir a grado VI
-        notaSiguiente = new Nota(notaActual.duracion, 6, octava, wav);
-     }else if(0.50 < randomNum && randomNum < 0.70){ // 30% de ir hacia grado II
-        notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
-     }else if(0.70 < randomNum && randomNum < 0.90){ // 30% de ir hacia grado IV
-        notaSiguiente = new Nota(notaActual.duracion, 4, octava, wav);
-      }else{
-        notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
-      }
-    break;
-    // Grado IV
-    // Su función tonal es de Subdominante y su tendencia es moverse con la
-    // misma fuerza hacia tónica (I) o hacia dominante (V).La cadencia IV-I es de las
-    // más fuertes y se llama cadencia plagal.
-
-    case 4:
-      if(randomNum < 0.45){
-        notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav); // Cadencia plagal IV -> I
-      }else if (0.45 < randomNum && randomNum < 0.90 ){
-        notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
-      }else{
-        notaSiguiente = new Nota(notaActual.duracion, 4, octava, wav);
-      }
-    break;
-
-    case 5: // Se mueve con igual probabilidad hacia la tonica, o se queda donde esta
-      if(randomNum < 0.5){
-        notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
-      }else{
-        notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
-      }
-    break;
-
-    case 6: // Su tendencia es a moverse hacia el II o el V.
-      if(randomNum < 0.45){
-        notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
-      }else if (0.45 < randomNum && randomNum < 0.90){
-        notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
-      }else{
-        notaSiguiente = new Nota(notaActual.duracion, 6, octava, wav);
-      }
-    break;
-
-    case 7: // Se mueve hacia la tonica siempre para resolver en el siguiente tiempo
-
-      notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
-
-    break;
-  }
-
-  return notaSiguiente;
-
-}
-
-// Se usa esto para generar una nota conclusiva, que dé caracter de resolución
-// Por ahora, la nota conclusiva va a ser del doble del tiempo de la nota actual
-
-Nota nextNotaConclusiva(Nota notaActual, Waveform wav, int octava){
-  Nota notaSiguiente = new Nota(); // Crea la nota como silencio, pronto la asignaremos
-  // Hace un switch sobre el grado de la nota actual, para ver a cuál grado pasa
-  float randomNum = random(0, 1); // Para las probabilidades de pasar a las otras notas
-  switch (notaActual.grado){
-    case 0:
-      println("Grado 0");
-      break;
-    case 1: // Si estamos sobre la tónica, con 50% de probabilidad, se mueve al grado III para dar variación, o se queda donde está
-      if(randomNum < 0.50){
-        notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav);
-      }else{
-        notaSiguiente = new Nota(notaActual.duracion*2, 3, octava, wav);
-      }
-    break;
-
-    case 2: // Si está en el grado II, tiene 70% de chance de moverse hacia la tónica, 30% de ir hacia grado III
-      if(randomNum < 0.70){
-        notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav);
-      }else{
-        notaSiguiente = new Nota(notaActual.duracion*2, 3, octava, wav);
-      }
-
-    break;
-
-    case 3: // 50% de chance de moverse hacia la tónica, 50% de quedarse donde está
-      if(randomNum < 0.50){
-        notaSiguiente = new Nota(notaActual.duracion*2, 3, octava, wav);
-      }else{
-        notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav);
-      }
-    break;
-
-    case 4:
-      if(randomNum < 0.50){
-        notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav); // Cadencia plagal IV -> I
-      }else{
-        notaSiguiente = new Nota(notaActual.duracion*2, 3, octava, wav);
-      }
-    break;
-
-    case 5: // Grado 5 siempre se mueve hacia la tónica
-      notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav);
-    break;
-
-    case 6: // Relativa menor,puede quedarse donde está o moverse a la tónica o III
-      if(randomNum < 0.33){
-        notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav);
-      }else if (0.33 < randomNum && randomNum < 0.77){
-        notaSiguiente = new Nota(notaActual.duracion*2, 3, octava, wav);
-      }else{
-        notaSiguiente = new Nota(notaActual.duracion*2, 6, octava, wav);
-      }
-    break;
-
-    case 7: // Se mueve hacia la tonica siempre para resolver en el siguiente tiempo
-
-      notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav);
-
-    break;
-  }
-
-  return notaSiguiente;
-}
-
-// Genera una nota semilla y numTiempos - 1 notas segun el criterio de generacion definido en nextNota
-
-Vector<Nota> generarNextNotas(int numTiempos, float duracionNotas, int octava, Waveform wav) {
-  Vector<Nota> vecNotas = new Vector<Nota>(); // Crea el vector que se va a devolver
-  int randomNum = (int) random(1, 7);
-
-  // Primera iteración de la generación de notas, se genera una nota semilla, con grado aleatorio entre 1 y 7
-
-  println(" --- Nota semilla --- ");
-  Nota notaActual = new Nota(duracionNotas, randomNum , octava, wav);
-  vecNotas.add(notaActual); // Anade primero la nota semilla
-  // Después, va generando notas según la nota anterior generada
-  // numTiempos - 1 - duracionNotas * 2
-  // Se resta notaSemilla ya generada y la nota final, que será del doble de la duración de la nota actual
-  for(int i = 0 ; i < numTiempos - 1 - duracionNotas*2 ; i+= duracionNotas){
-    notaActual = nextNota(notaActual, wav, octava); // Ahora la actual es la siguiente
-    vecNotas.add(notaActual); // Anade al vector de notas
-    //println("Nota agregada: " + notaActual.frecuencia + " Octava " + octava);
-  }
-  // Genera la nota que dé caracter conclusivo para que termine la frase
-  // Recordemos que este método genera frases musicales
-  notaActual = nextNotaConclusiva(notaActual, wav, octava);
-  vecNotas.add(notaActual);
-
-  // Después de generar la nota conclusiva, la cual va a ser del doble de tiempos que la nota actual que reciba
-  // inserta el silencio correspondiente, es decir, del doble del tiempo de la nota actual - 1
-
-  for (int j = 1; j < notaActual.duracion; j++ ) {
-    vecNotas.addElement(new Nota(notaActual.duracion, silencio, wav));
-  }
-
-  return vecNotas;
-}
-
-// Genera una pieza con unos acordes arpegiados sencillos
+// Genera una pieza con unos acordes arpegiados sencillos con DISTRIBUCIÓN ALEATORIA
 
 void generarPiezaAcordes() {
 
@@ -387,7 +148,6 @@ void generarPiezaAcordes() {
   arreglo.add(acomp);
 
   r.reproducirVectores(arreglo, 100);
-
 }
 
 // Genera una pieza tipo rondó, ABA CAC ABA
@@ -447,10 +207,46 @@ void generarRondo() {
   r.reproducirVectores(arreglo, 100); // Reproduce
 }
 
+/************************************** MÉTODOS PARA GENERAR SERIES DE NOTAS **************************************/
+
+// Genera una nota semilla y numTiempos - 1 notas segun el criterio de generacion definido en nextNota
+// Itera sobre el método de nextNota
+Vector<Nota> generarNextNotas(int numTiempos, float duracionNotas, int octava, Waveform wav, float[][] matrizMarkov) {
+  Vector<Nota> vecNotas = new Vector<Nota>(); // Crea el vector que se va a devolver
+  int randomNum = (int) random(1, 7);
+
+  // Primera iteración de la generación de notas, se genera una nota semilla, con grado aleatorio entre 1 y 7
+
+  println(" --- Nota semilla --- ");
+  Nota notaActual = new Nota(duracionNotas, randomNum, octava, wav);
+  vecNotas.add(notaActual); // Anade primero la nota semilla
+  // Después, va generando notas según la nota anterior generada
+  // numTiempos - 1 - duracionNotas * 2
+  // Se resta notaSemilla ya generada y la nota final, que será del doble de la duración de la nota actual
+  for (int i = 0; i < numTiempos - 1 - duracionNotas*2; i+= duracionNotas) {
+    notaActual = nextNotaM(notaActual, wav, octava, matrizMarkov); // Ahora la actual es la siguiente
+    vecNotas.add(notaActual); // Anade al vector de notas
+    //println("Nota agregada: " + notaActual.frecuencia + " Octava " + octava);
+  }
+  // Genera la nota que dé caracter conclusivo para que termine la frase
+  // Recordemos que este método genera frases musicales
+  notaActual = nextNotaConclusiva(notaActual, wav, octava);
+  vecNotas.add(notaActual);
+
+  // Después de generar la nota conclusiva, la cual va a ser del doble de tiempos que la nota actual que reciba
+  // inserta el silencio correspondiente, es decir, del doble del tiempo de la nota actual - 1
+
+  for (int j = 1; j < notaActual.duracion; j++ ) {
+    vecNotas.addElement(new Nota(notaActual.duracion, silencio, wav));
+  }
+
+  return vecNotas;
+}
+
 /* Este método reproduce directamente una serie de notas generadas al azar
-
+ 
  PARÁMETROS:
-
+ 
  numTiempos: Cantidad de tiempos que se quieren generar
  duracionNotas: Duración de las notas generadas (negra, blanca, etc.)
  wav: Waveform de las notas por generar
@@ -458,19 +254,19 @@ void generarRondo() {
  melodía como acompañamiento
  p: Si se quieren generar notas con Perlin noise o no
  offset: A partir de qué tiempo se quieren colocar las notas (en el caso de que no se quiera empezar a reproducir la parte de inmediato)
-
+ 
  EJEMPLO:
-
+ 
  arreglo.add(generarNotas(16, blanca, sine, 4, false, 4));
-
+ 
  Se generan 16 tiempos con un waveform de seno, sin Perlin Noise, es decir con distribución uniforme y con
  4 silencios antes de empezar las notas
-
+ 
  NOTAS:
-
+ 
  Por ahora se va a requerir que la serie de notas termine en la tónica, mediante, o dominante, pues estos grados dan
  una sensación de resolución mayor a los otros grados
-
+ 
  */
 
 Vector<Nota> generarNotas(int numTiempos, float duracionNotas, Waveform wav, int octava, boolean p, int offset) {
@@ -621,6 +417,8 @@ Vector<Nota> generarNotas(int numTiempos, float duracionNotas, Waveform wav, int
   return vecNotas;
 }
 
+
+
 // Genera los acordes (conjuntos de 4 notas) segun la cantidad de compases ingresados
 //
 // generarAcordes(16, negra, sine, 3, false, 0) debería generar 4 acordes, cada uno compuesto de 4 notas en la octava 3, con 0 silencios por delante
@@ -699,6 +497,441 @@ Vector<Nota> generarAcordes(int numTiempos, Waveform wav, int octava, int offset
   println();
 
   return vecNotas;
+}
+
+
+/************************************** MÉTODOS PARA GENERAR NOTAS **************************************/
+
+// Este método debería dar cada vez que se llama, la siguiente nota, dada una nota actual,
+// de esta manera que exista algún criterio de generación de notas menos aleatorio.
+// VER ARCHIVO Notas_sobre_transiciones_entre_grados PARA REFERENCIA SOBRE LA TEORÍA QUE SE TOMÓ EN CUENTA PARA MODELAR LAS PROBABILIDADES DE TRANSICIÓN
+
+/*
+ 
+ MATRIZ 2.0 CON PROBABILIDADES ARREGLADAS
+ 
+ I        II       III         IV       V        VI       VII
+ I        0.10     0.15     0.15        0.15     0.15     0.15     0.15    Igual probabilidad de moverse hacia cualquier grado, un poco menos baja probabilidad de quedarse donde está para dar más variación.
+ II       0.45     0.10     0           0        0.45     0        0       Alta probabilidad de ir hacia el grado I o grado V, baja probabilidad de quedarse donde está.
+ III      0.25     0.125    0.125       0.125    0.125    0.125    0.125   Se puede mover con cualquier probabilidad a cualquier lado o quedarse donde está, con una probabilidad ligeramente más alta de ir hacia la tónica.
+ IV       0.20     0.08     0.08        0.08     0.40     0.08     0.08    Tendencia más fuerte a moverse al quinto grado, un poco menos fuerte a la tonica, baja probabilidad de quedarse o irse a otro grado.
+ V        0.40     0.10     0.10        0.10     0.10     0.10     0.10    Alta probabilidad de ir hacia la tonica, probabilidad repartida de irse hacia los demás grados. 
+ VI       0.20     0.08     0.08        0.08     0.40     0.08     0.08    Se comporta igual que el IV grado
+ VII      0.40     0.10     0.10        0.10     0.10     0.10     0.10    Se comporta igual al V grado, con alta tendencia de ir hacia el primero
+ 
+ */
+// Nos da la siguiente nota dada una nota actuaL, el waveform y una octava
+// Se programó un método igual más abajo, que recibe una matriz de Markov como parámetro
+// Se utiliza el constructor de Nota con duración, grado, octava y waveform
+
+Nota nextNota(Nota notaActual, Waveform wav, int octava) {
+  Nota notaSiguiente = new Nota(); // Crea la nota como silencio, pronto la asignaremos
+  // Hace un switch sobre el grado de la nota actual, para ver a cuál grado pasa
+  float randomNum = random(0, 1); // Para las probabilidades de pasar a las otras notas
+  //print("GRADO: " + notaActual.grado);
+  switch (notaActual.grado) {
+  case 0:
+    println("GRADO 0");
+    //break; // Si cae en grado 0 no se detenga, para que sea como si cayera en el grado 1
+  case 1: // En teoria, la tonica resuelve, pero para darle dinamismo, nos movemos con igual probabilidad de la tonica a cualquier otro grado
+    if (randomNum < 0.10) { // 10% de ir a I
+      notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+    } else if (0.10 < randomNum && randomNum > 0.25) { // 15% de ir a  II
+      notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
+    } else if (0.25 < randomNum && randomNum > 0.40) { // 15% de ir a III
+      notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
+    } else if (0.40 < randomNum && randomNum > 0.55) { // 15% de ir a IV
+      notaSiguiente = new Nota(notaActual.duracion, 4, octava, wav);
+    } else if (0.55 < randomNum && randomNum > 0.70) { // 15% de ir a V
+      notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
+    } else if (0.70 < randomNum && randomNum > 0.85) { // 15% de ir a VI
+      notaSiguiente = new Nota(notaActual.duracion, 6, octava, wav);
+    } else if (0.85 < randomNum) { // 15% de ir a VII
+      notaSiguiente = new Nota(notaActual.duracion, 7, octava, wav);
+    }
+    break;
+
+  case 2: 
+    if (randomNum < 0.45) { //45% de ir a I
+      notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+    } else if (0.45 < randomNum && randomNum < 0.55) { // 10% de ir a II
+      notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
+    } else { // 45% de ir a V
+      notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
+    }
+    break;
+
+  case 3:
+    if (randomNum < 0.25) { // 25% de ir a I
+      notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+    } else if (0.25 < randomNum && randomNum > 0.375) { // 12.5% de ir a II
+      notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
+    } else if (0.375 < randomNum && randomNum > 0.50) { // 12.5% de ir a III
+      notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
+    } else if (0.50 < randomNum && randomNum > 0.625) { // 12.5% de ir a IV
+      notaSiguiente = new Nota(notaActual.duracion, 4, octava, wav);
+    } else if (0.625 < randomNum && randomNum > 0.75) { // 12.5% de ir a V
+      notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
+    } else if (0.75 < randomNum && randomNum > 0.875) { // 12.5% de ir a VI
+      notaSiguiente = new Nota(notaActual.duracion, 6, octava, wav);
+    } else if (0.875 < randomNum) { // 12.5% de ir a VII
+      notaSiguiente = new Nota(notaActual.duracion, 7, octava, wav);
+    }
+    break;
+
+  case 4:
+    if (randomNum < 0.20) { // 20% de ir a I
+      notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+    } else if (0.20 < randomNum && randomNum > 0.28) { // 8% de ir a II
+      notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
+    } else if (0.28 < randomNum && randomNum > 0.36) { // 8% de ir a III
+      notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
+    } else if (0.36 < randomNum && randomNum > 0.44) { // 8% de ir a IV
+      notaSiguiente = new Nota(notaActual.duracion, 4, octava, wav);
+    } else if (0.44 < randomNum && randomNum > 0.84) { // 40% de ir a V
+      notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
+    } else if (0.84 < randomNum && randomNum > 0.92) { // 8% de ir a VI
+      notaSiguiente = new Nota(notaActual.duracion, 6, octava, wav);
+    } else if (0.92 < randomNum) { // 8% de ir a VII
+      notaSiguiente = new Nota(notaActual.duracion, 7, octava, wav);
+    }
+    break;
+
+  case 5: 
+    if (randomNum < 0.40) { // 40% de ir a I
+      notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+    } else if (0.40 < randomNum && randomNum > 0.50) { // 10% de ir a II
+      notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
+    } else if (0.50 < randomNum && randomNum > 0.60) { // 10% de ir a III
+      notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
+    } else if (0.60 < randomNum && randomNum > 0.70) { // 10% de ir a IV
+      notaSiguiente = new Nota(notaActual.duracion, 4, octava, wav);
+    } else if (0.70 < randomNum && randomNum > 0.80) { // 10% de ir a V
+      notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
+    } else if (0.80 < randomNum && randomNum > 0.90) { // 10% de ir a VI
+      notaSiguiente = new Nota(notaActual.duracion, 6, octava, wav);
+    } else if (0.90 < randomNum) { // 10% de ir a VII
+      notaSiguiente = new Nota(notaActual.duracion, 7, octava, wav);
+    }
+    break;
+
+  case 6: // Se comporta igual que el grado IV
+    if (randomNum < 0.20) { // 20% de ir a I
+      notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+    } else if (0.20 < randomNum && randomNum > 0.28) { // 8% de ir a II
+      notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
+    } else if (0.28 < randomNum && randomNum > 0.36) { // 8% de ir a III
+      notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
+    } else if (0.36 < randomNum && randomNum > 0.44) { // 8% de ir a IV
+      notaSiguiente = new Nota(notaActual.duracion, 4, octava, wav);
+    } else if (0.44 < randomNum && randomNum > 0.84) { // 40% de ir a V
+      notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
+    } else if (0.84 < randomNum && randomNum > 0.92) { // 8% de ir a VI
+      notaSiguiente = new Nota(notaActual.duracion, 6, octava, wav);
+    } else if (0.92 < randomNum) { // 8% de ir a VII
+      notaSiguiente = new Nota(notaActual.duracion, 7, octava, wav);
+    }
+    break;
+
+  case 7: // Se comporta igual que el V grado
+
+    if (randomNum < 0.40) { // 40% de ir a I
+      notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+    } else if (0.40 < randomNum && randomNum > 0.50) { // 10% de ir a II
+      notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
+    } else if (0.50 < randomNum && randomNum > 0.60) { // 10% de ir a III
+      notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
+    } else if (0.60 < randomNum && randomNum > 0.70) { // 10% de ir a IV
+      notaSiguiente = new Nota(notaActual.duracion, 4, octava, wav);
+    } else if (0.70 < randomNum && randomNum > 0.80) { // 10% de ir a V
+      notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
+    } else if (0.80 < randomNum && randomNum > 0.90) { // 10% de ir a VI
+      notaSiguiente = new Nota(notaActual.duracion, 6, octava, wav);
+    } else if (0.90 < randomNum) { // 10% de ir a VII
+      notaSiguiente = new Nota(notaActual.duracion, 7, octava, wav);
+    }
+
+    break;
+  }
+
+  return notaSiguiente;
+}
+
+// Igual que nextNota, pero usa una matriz de Markov directamente como parámetro.
+/* 
+ 
+ RECUERDE, LA MATRIZ ES ÉSTA:
+ 
+ I        II       III         IV       V        VI       VII
+ I        0.10     0.15     0.15        0.15     0.15     0.15     0.15    Igual probabilidad de moverse hacia cualquier grado, un poco menos baja probabilidad de quedarse donde está para dar más variación.
+ II       0.45     0.10     0           0        0.45     0        0       Alta probabilidad de ir hacia el grado I o grado V, baja probabilidad de quedarse donde está.
+ III      0.25     0.125    0.125       0.125    0.125    0.125    0.125   Se puede mover con cualquier probabilidad a cualquier lado o quedarse donde está, con una probabilidad ligeramente más alta de ir hacia la tónica.
+ IV       0.20     0.08     0.08        0.08     0.40     0.08     0.08    Tendencia más fuerte a moverse al quinto grado, un poco menos fuerte a la tonica, baja probabilidad de quedarse o irse a otro grado.
+ V        0.40     0.10     0.10        0.10     0.10     0.10     0.10    Alta probabilidad de ir hacia la tonica, probabilidad repartida de irse hacia los demás grados. 
+ VI       0.20     0.08     0.08        0.08     0.40     0.08     0.08    Se comporta igual que el IV grado
+ VII      0.40     0.10     0.10        0.10     0.10     0.10     0.10    Se comporta igual al V grado, con alta tendencia de ir hacia el primero
+ 
+ */
+
+// Recibe una matriz 7x7 con las probabilidades de transición
+Nota nextNotaM(Nota notaActual, Waveform wav, int octava, float [][] matrizProbabilidades) {
+
+  // Primero arma una matriz con los valores acumulados de la matriz de Markov para poder manipularlo como probabilidades
+  float [][] matrizProbabilidadesAcum = new float [6][6];
+  matrizProbabilidadesAcum[0][0] = matrizProbabilidades[0][0]; // 0.10
+  matrizProbabilidadesAcum[1][0] = matrizProbabilidades[1][0];
+  matrizProbabilidadesAcum[2][0] = matrizProbabilidades[2][0];
+  matrizProbabilidadesAcum[3][0] = matrizProbabilidades[3][0];
+  matrizProbabilidadesAcum[4][0] = matrizProbabilidades[4][0];
+  matrizProbabilidadesAcum[5][0] = matrizProbabilidades[5][0];
+
+  // matrizProbabilidadesAcum[0][1] = matrizProbabilidadesAcum[0][0] + matrizProbabilidades[0][1]; // 0.10 + 0.15 = 0.25
+  // Construye las filas de acumulados, ya todas las filas tienen en su posición 0 su correspondiente acumulado
+
+  for (int i = 0; i < matrizProbabilidadesAcum.length; i++) {
+    for (int j = 1; j < matrizProbabilidadesAcum[0].length; j++) { // Desde 1 porque en 0 ya está
+      matrizProbabilidadesAcum[i][j] = matrizProbabilidadesAcum[i][j-1] + matrizProbabilidades[i][j];
+      ;
+    }
+  }
+
+  Nota notaSiguiente = new Nota(); // Crea la nota como silencio, pronto la asignaremos
+  // Hace un switch sobre el grado de la nota actual, para ver a cuál grado pasa
+  float randomNum = random(0, 1); // Para las probabilidades de pasar a las otras notas
+  //print("GRADO: " + notaActual.grado);
+  switch (notaActual.grado) {
+  case 0:
+    println("GRADO 0");
+    //break; // Sigue como si hubiera caído en grado I
+  case 1: // En teoria, la tonica resuelve, pero para darle dinamismo, nos movemos con igual probabilidad de la tonica a cualquier otro grado
+    if (randomNum < matrizProbabilidadesAcum[0][0]) { // 10% de ir a I
+      notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+    } else if (matrizProbabilidadesAcum[0][0] < randomNum && randomNum > matrizProbabilidadesAcum[0][1]) { // 15% de ir a  II
+      notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
+    } else if (matrizProbabilidadesAcum[0][1] < randomNum && randomNum > matrizProbabilidadesAcum[0][2]) { // 15% de ir a III
+      notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
+    } else if (matrizProbabilidadesAcum[0][2] < randomNum && randomNum > matrizProbabilidadesAcum[0][3]) { // 15% de ir a IV
+      notaSiguiente = new Nota(notaActual.duracion, 4, octava, wav);
+    } else if (matrizProbabilidadesAcum[0][3] < randomNum && randomNum > matrizProbabilidadesAcum[0][4]) { // 15% de ir a V
+      notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
+    } else if (matrizProbabilidadesAcum[0][4] < randomNum && randomNum > matrizProbabilidadesAcum[0][5]) { // 15% de ir a VI
+      notaSiguiente = new Nota(notaActual.duracion, 6, octava, wav);
+    } else if (matrizProbabilidadesAcum[0][5] < randomNum) { // 15% de ir a VII
+      notaSiguiente = new Nota(notaActual.duracion, 7, octava, wav);
+    }
+    break;
+
+  case 2: 
+    if (randomNum < matrizProbabilidadesAcum[1][0]) { //45% de ir a I
+      notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+    } else if (matrizProbabilidadesAcum[1][0] < randomNum && randomNum < matrizProbabilidadesAcum[1][1]) { // 10% de ir a II
+      notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
+    } else { // 45% de ir a V
+      notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
+    }
+    break;
+
+  case 3:
+    if (randomNum < matrizProbabilidadesAcum[2][0]) { // 25% de ir a I
+      notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+    } else if (matrizProbabilidadesAcum[2][0] < randomNum && randomNum > matrizProbabilidadesAcum[2][1]) { // 12.5% de ir a II
+      notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
+    } else if (matrizProbabilidadesAcum[2][1] < randomNum && randomNum > matrizProbabilidadesAcum[2][2]) { // 12.5% de ir a III
+      notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
+    } else if (matrizProbabilidadesAcum[2][2] < randomNum && randomNum > matrizProbabilidadesAcum[2][3]) { // 12.5% de ir a IV
+      notaSiguiente = new Nota(notaActual.duracion, 4, octava, wav);
+    } else if (matrizProbabilidadesAcum[2][3] < randomNum && randomNum > matrizProbabilidadesAcum[2][4]) { // 12.5% de ir a V
+      notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
+    } else if (matrizProbabilidadesAcum[2][4] < randomNum && randomNum > matrizProbabilidadesAcum[2][5]) { // 12.5% de ir a VI
+      notaSiguiente = new Nota(notaActual.duracion, 6, octava, wav);
+    } else if (matrizProbabilidadesAcum[2][5] < randomNum) { // 12.5% de ir a VII
+      notaSiguiente = new Nota(notaActual.duracion, 7, octava, wav);
+    }
+    break;
+
+  case 4:
+    if (randomNum < matrizProbabilidadesAcum[3][0]) { // 20% de ir a I
+      notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+    } else if (matrizProbabilidadesAcum[3][0] < randomNum && randomNum > matrizProbabilidadesAcum[3][1]) { // 8% de ir a II
+      notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
+    } else if (matrizProbabilidadesAcum[3][1] < randomNum && randomNum > matrizProbabilidadesAcum[3][2]) { // 8% de ir a III
+      notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
+    } else if (matrizProbabilidadesAcum[3][2] < randomNum && randomNum > matrizProbabilidadesAcum[3][3]) { // 8% de ir a IV
+      notaSiguiente = new Nota(notaActual.duracion, 4, octava, wav);
+    } else if (matrizProbabilidadesAcum[3][3] < randomNum && randomNum > matrizProbabilidadesAcum[3][4]) { // 40% de ir a V
+      notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
+    } else if (matrizProbabilidadesAcum[3][4] < randomNum && randomNum > matrizProbabilidadesAcum[3][5]) { // 8% de ir a VI
+      notaSiguiente = new Nota(notaActual.duracion, 6, octava, wav);
+    } else if (matrizProbabilidadesAcum[3][5] < randomNum) { // 8% de ir a VII
+      notaSiguiente = new Nota(notaActual.duracion, 7, octava, wav);
+    }
+    break;
+
+  case 5: 
+    if (randomNum < matrizProbabilidadesAcum[4][0]) { // 40% de ir a I
+      notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+    } else if (matrizProbabilidadesAcum[4][0] < randomNum && randomNum > matrizProbabilidadesAcum[4][1]) { // 10% de ir a II
+      notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
+    } else if (matrizProbabilidadesAcum[4][1] < randomNum && randomNum > matrizProbabilidadesAcum[4][2]) { // 10% de ir a III
+      notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
+    } else if (matrizProbabilidadesAcum[4][2] < randomNum && randomNum > matrizProbabilidadesAcum[4][3]) { // 10% de ir a IV
+      notaSiguiente = new Nota(notaActual.duracion, 4, octava, wav);
+    } else if (matrizProbabilidadesAcum[4][3] < randomNum && randomNum > matrizProbabilidadesAcum[4][4]) { // 10% de ir a V
+      notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
+    } else if (matrizProbabilidadesAcum[4][4] < randomNum && randomNum > matrizProbabilidadesAcum[4][5]) { // 10% de ir a VI
+      notaSiguiente = new Nota(notaActual.duracion, 6, octava, wav);
+    } else if (matrizProbabilidadesAcum[4][5] < randomNum) { // 10% de ir a VII
+      notaSiguiente = new Nota(notaActual.duracion, 7, octava, wav);
+    }
+    break;
+
+  case 6: // Se comporta igual que el grado IV
+    if (randomNum < matrizProbabilidadesAcum[5][0]) { // 20% de ir a I
+      notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+    } else if (matrizProbabilidadesAcum[5][0] < randomNum && randomNum > matrizProbabilidadesAcum[5][1]) { // 8% de ir a II
+      notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
+    } else if (matrizProbabilidadesAcum[5][1] < randomNum && randomNum > matrizProbabilidadesAcum[5][2]) { // 8% de ir a III
+      notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
+    } else if (matrizProbabilidadesAcum[5][2] < randomNum && randomNum > matrizProbabilidadesAcum[5][3]) { // 8% de ir a IV
+      notaSiguiente = new Nota(notaActual.duracion, 4, octava, wav);
+    } else if (matrizProbabilidadesAcum[5][3] < randomNum && randomNum > matrizProbabilidadesAcum[5][4]) { // 40% de ir a V
+      notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
+    } else if (matrizProbabilidadesAcum[5][4] < randomNum && randomNum > matrizProbabilidadesAcum[5][5]) { // 8% de ir a VI
+      notaSiguiente = new Nota(notaActual.duracion, 6, octava, wav);
+    } else if (matrizProbabilidadesAcum[5][5] < randomNum) { // 8% de ir a VII
+      notaSiguiente = new Nota(notaActual.duracion, 7, octava, wav);
+    }
+    break;
+
+  case 7: // Se comporta igual que el V grado
+
+    if (randomNum < matrizProbabilidadesAcum[6][0]) { // 40% de ir a I
+      notaSiguiente = new Nota(notaActual.duracion, 1, octava, wav);
+    } else if (matrizProbabilidadesAcum[6][0] < randomNum && randomNum > matrizProbabilidadesAcum[6][1]) { // 10% de ir a II
+      notaSiguiente = new Nota(notaActual.duracion, 2, octava, wav);
+    } else if (matrizProbabilidadesAcum[6][1] < randomNum && randomNum > matrizProbabilidadesAcum[6][2]) { // 10% de ir a III
+      notaSiguiente = new Nota(notaActual.duracion, 3, octava, wav);
+    } else if (matrizProbabilidadesAcum[6][2] < randomNum && randomNum > matrizProbabilidadesAcum[6][3]) { // 10% de ir a IV
+      notaSiguiente = new Nota(notaActual.duracion, 4, octava, wav);
+    } else if (matrizProbabilidadesAcum[6][3] < randomNum && randomNum > matrizProbabilidadesAcum[6][4]) { // 10% de ir a V
+      notaSiguiente = new Nota(notaActual.duracion, 5, octava, wav);
+    } else if (matrizProbabilidadesAcum[6][4] < randomNum && randomNum > matrizProbabilidadesAcum[6][5]) { // 10% de ir a VI
+      notaSiguiente = new Nota(notaActual.duracion, 6, octava, wav);
+    } else if (matrizProbabilidadesAcum[6][5] < randomNum) { // 10% de ir a VII
+      notaSiguiente = new Nota(notaActual.duracion, 7, octava, wav);
+    }
+    break;
+  }
+
+  return notaSiguiente;
+}
+
+// Se usa esto para generar una nota conclusiva, que dé caracter de resolución
+// Por ahora, la nota conclusiva va a ser del doble del tiempo de la nota actual
+Nota nextNotaConclusiva(Nota notaActual, Waveform wav, int octava) {
+  Nota notaSiguiente = new Nota(); // Crea la nota como silencio, pronto la asignaremos
+  // Hace un switch sobre el grado de la nota actual, para ver a cuál grado pasa
+  float randomNum = random(0, 1); // Para las probabilidades de pasar a las otras notas
+  switch (notaActual.grado) {
+  case 0:
+    println("Grado 0");
+    break;
+  case 1: // Si estamos sobre la tónica, con 50% de probabilidad, se mueve al grado III para dar variación, o se queda donde está
+    if (randomNum < 0.50) {
+      notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav);
+    } else {
+      notaSiguiente = new Nota(notaActual.duracion*2, 3, octava, wav);
+    }
+    break;
+  case 2: // Si está en el grado II, tiene 70% de chance de moverse hacia la tónica, 30% de ir hacia grado III
+    if (randomNum < 0.70) {
+      notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav);
+    } else {
+      notaSiguiente = new Nota(notaActual.duracion*2, 3, octava, wav);
+    }
+
+    break;
+  case 3: // 50% de chance de moverse hacia la tónica, 50% de quedarse donde está
+    if (randomNum < 0.50) {
+      notaSiguiente = new Nota(notaActual.duracion*2, 3, octava, wav);
+    } else {
+      notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav);
+    }
+    break;
+  case 4:
+    if (randomNum < 0.50) {
+      notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav); // Cadencia plagal IV -> I
+    } else {
+      notaSiguiente = new Nota(notaActual.duracion*2, 3, octava, wav);
+    }
+    break;
+  case 5: // Grado 5 siempre se mueve hacia la tónica
+    notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav);
+    break;
+  case 6: // Relativa menor,puede quedarse donde está o moverse a la tónica o III
+    if (randomNum < 0.33) {
+      notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav);
+    } else if (0.33 < randomNum && randomNum < 0.77) {
+      notaSiguiente = new Nota(notaActual.duracion*2, 3, octava, wav);
+    } else {
+      notaSiguiente = new Nota(notaActual.duracion*2, 6, octava, wav);
+    }
+    break;
+  case 7: // Se mueve hacia la tonica siempre para resolver en el siguiente tiempo
+    notaSiguiente = new Nota(notaActual.duracion*2, 1, octava, wav);
+    break;
+  }
+  return notaSiguiente;
+}
+
+
+/************************************** MÉTODOS PARA GENERAR MATRICES **************************************/
+
+// Método para probar si el método de calcular la matriz acumulada funciona
+
+void pruebaMatrices(float [][] matrizProbabilidades) {
+  println("Matriz de Markov");
+  println();
+  for (int i = 0; i < matrizProbabilidades.length; i++) {
+    for (int j = 0; j < matrizProbabilidades[0].length; j++) { // Desde 1 porque en 0 ya está
+      print(matrizProbabilidades[i][j] + " | ");
+    }
+    println();
+  }
+  println();
+
+  float [][] matrizProbabilidadesAcum = new float [7][7];
+  matrizProbabilidadesAcum[0][0] = matrizProbabilidades[0][0]; // 0.10
+  matrizProbabilidadesAcum[1][0] = matrizProbabilidades[1][0];
+  matrizProbabilidadesAcum[2][0] = matrizProbabilidades[2][0];
+  matrizProbabilidadesAcum[3][0] = matrizProbabilidades[3][0];
+  matrizProbabilidadesAcum[4][0] = matrizProbabilidades[4][0];
+  matrizProbabilidadesAcum[5][0] = matrizProbabilidades[5][0];
+
+  //matrizProbabilidadesAcum[0][1] = matrizProbabilidadesAcum[0][0] + matrizProbabilidades[0][1]; // 0.10 + 0.15 = 0.25
+  //matrizProbabilidadesAcum[0][2] = matrizProbabilidadesAcum[0][1] + matrizProbabilidades[0][2]; // 0.25 + 0.15 = 0.40
+  //matrizProbabilidadesAcum[0][3] = matrizProbabilidadesAcum[0][2] + matrizProbabilidades[0][3]; // 0.40 + 0.15 = 0.55
+  //matrizProbabilidadesAcum[0][4] = matrizProbabilidadesAcum[0][3] + matrizProbabilidades[0][4]; // 0.55 + 0.15 = 0.70
+  //matrizProbabilidadesAcum[0][5] = matrizProbabilidadesAcum[0][4] + matrizProbabilidades[0][5]; // 0.70 + 0.15 = 0.85
+
+  // Construye las filas de acumulados, ya todas las filas tienen en su posición 0 su correspondiente acumulado
+
+  for (int i = 0; i < matrizProbabilidadesAcum.length; i++) {
+    for (int j = 1; j < matrizProbabilidadesAcum[0].length; j++) { // Desde 1 porque en 0 ya está
+      //print(matrizProbabilidadesAcum[i][j-1] + " + " + matrizProbabilidades[i][j] + " = ");
+      matrizProbabilidadesAcum[i][j] = matrizProbabilidadesAcum[i][j-1] + matrizProbabilidades[i][j];
+      //println(matrizProbabilidadesAcum[i][j]);
+    }
+  }
+
+  println("Matriz acumulada");
+  println();
+  for (int i = 0; i < matrizProbabilidadesAcum.length; i++) {
+    for (int j = 0; j < matrizProbabilidadesAcum[0].length; j++) { // Desde 1 porque en 0 ya está
+      print(matrizProbabilidadesAcum[i][j] + " | ");
+    }
+    println();
+  }
 }
 
 void mostrarNotas() {

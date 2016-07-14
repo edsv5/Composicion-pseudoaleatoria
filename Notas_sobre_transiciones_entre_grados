@@ -1,0 +1,69 @@
+
+ Transiciones que se deben tomar en cuenta:
+ 
+ <---------------------.---------------->
+ I   II    III   IV    V   VI    VII   VIII
+ <-.->        <-.---->  <-.     .->
+ 
+ Tónica (I)
+ 
+ La tónica no tiene tendencia a moverse hacia ningún lado, ya resuelve.
+ 
+ Grado II
+ 
+ Su función tonal es de Subdominante, por contener el cuarto
+ grado de la escala. Tiende a moverse con la misma fuerza hacia la tónica
+ y hacia dominante.
+ 
+ Grado III
+ 
+ Su función tonal es de Tónica. La tendencia de este acorde es moverse
+ hacia el acorde el grado VI ó hacia el II ó IV. Es menos estable que el
+ grado I aunque pertenezca a la función tonal tónica.
+ 
+ Grado IV (Subdominante)
+ 
+ Su función tonal es de Subdominante y su tendencia es moverse con la
+ misma fuerza hacia tónica (I) o hacia dominante (V).La cadencia IV-I es de las
+ más fuertes y se llama cadencia plagal.
+ 
+ Los acordes pertenecientes a esta función armónica piden una ligera
+ resolución en un acorde de función armónica dominante y, en menor
+ medida, en un acorde de función armónica tónica.
+ 
+ Grado V (Dominante)
+ 
+ El acorde que se forma es mayor. Su función tonal es de Dominante.
+ Su tendencia es moverse hacia tónica. Es el acorde más importante
+ de la tonalidad después del acorde I.
+ 
+ Grado VI
+ 
+ Al tratarse del relativo menor, tiene cierta función de tónica.
+ Su tendencia es a moverse hacia el II o el V.
+ 
+ Grado VII
+ 
+ El acorde que se forma es disminuido. Su función tonal es de
+ Dominante, por contener los grados IV y VII. Se trata del acorde
+ más débil e inestable de la tonalidad.
+ 
+ Grado VIII
+ 
+ Aunque no es un acorde diatónico, su uso es muy frecuente en
+ progresiones diatónicas. Se trata de un acorde mayor, con
+ función no diatónica, pero como contiene el grado IV se le
+ asigna cierta función de subdominante.
+ 
+ MATRIZ DE MARKOV QUE SE MODELÓ CON ESTOS CRITERIOS (REVISIÓN 2)
+ 
+ I        II       III         IV       V        VI       VII
+ I        0.10     0.15     0.15        0.15     0.15     0.15     0.15    Igual probabilidad de moverse hacia cualquier grado, un poco menos baja probabilidad de quedarse donde está para dar más variación.
+ II       0.45     0.10     0           0        0.45     0        0       Alta probabilidad de ir hacia el grado I o grado V, baja probabilidad de quedarse donde está.
+ III      0.25     0.125    0.125       0.125    0.125    0.125    0.125   Se puede mover con cualquier probabilidad a cualquier lado o quedarse donde está, con una probabilidad ligeramente más alta de ir hacia la tónica.
+ IV       0.20     0.08     0.08        0.08     0.40     0.08     0.08    Tendencia más fuerte a moverse al quinto grado, un poco menos fuerte a la tonica, baja probabilidad de quedarse o irse a otro grado.
+ V        0.40     0.10     0.10        0.10     0.10     0.10     0.10    Alta probabilidad de ir hacia la tonica, probabilidad repartida de irse hacia los demás grados. 
+ VI       0.20     0.08     0.08        0.08     0.40     0.08     0.08    Se comporta igual que el IV grado
+ VII      0.40     0.10     0.10        0.10     0.10     0.10     0.10    Se comporta igual al V grado, con alta tendencia de ir hacia el primero
+ 
+
